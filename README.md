@@ -5,8 +5,7 @@ This is a pet project to sort my media according to my own workflow.  This used 
 
 ![MediaSorter Screenshot](Docs/Screenshots/screenshot-MediaSorter.png)
 
-[Download MediaSorter](Releases/MediaSorter-0.1.0.zip)
-
+Download [MediaSorter](https://github.com/dougdiego/MediaSorter/raw/master/Releases/MediaSorter-0.1.0.zip)
 
 ## My Workflow
 I use iCloud Photos.  But it's not my main storage or backup.  It's where I keep my best photos.  When I pull out my iPhone to show someone a picture, I don't want to have to flip through tons photos that were taken to get the perfect shot.
