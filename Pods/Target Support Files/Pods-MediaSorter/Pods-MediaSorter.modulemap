@@ -1,0 +1,6 @@
+framework module Pods_MediaSorter {
+  umbrella header "Pods-MediaSorter-umbrella.h"
+
+  export *
+  module * { export * }
+}
