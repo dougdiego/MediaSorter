@@ -37,18 +37,25 @@ class ViewController: NSViewController {
     var sortAscending = true
 
     override var representedObject: Any? {
+
         didSet {
             if let url = representedObject as? URL {
                 log.debug("Represented object: \(url)")
                 self.updateStatus("Loading media")
-                DispatchQueue.global(qos: .background).async {
-                    self.directory = Directory(folderURL: url)
+                self.directory = Directory(folderURL: url)
+                self.directory?.loadFiles(currentFile: { (fileName) in
+                    log.debug("loadFiles() file: \(String(describing: fileName))")
                     DispatchQueue.main.async {
-                        self.updateStatus("Processing media")
-                        self.reloadFileList()
-                        //self.updateStatus()
+                        self.updateStatus("Loading file: \(fileName)")
                     }
-                }
+                }, completion: {
+                    log.debug("loadFiles() completion")
+                    DispatchQueue.main.async {
+                        self.reloadFileList()
+                    }
+                }, failure: { (error) in
+                    log.error("loadFiles() error")
+                })
             }
         }
     }
@@ -100,18 +107,21 @@ class ViewController: NSViewController {
             UserDefaults.standard.synchronize()
         }
 
-        DispatchQueue.global(qos: .background).async {
-            // Process Media
-            self.directory?.processNewPath(photoIdentifier, dateFormat: dateFormat)
-
-            // Sort Media
-            self.directoryItems = self.directory?.contentsOrderedBy(self.sortOrder, ascending: self.sortAscending)
-
-            // Reload Table View
+        self.directory?.processNewPath(photoIdentifier, dateFormat: dateFormat, currentFile: { (fileName) in
             DispatchQueue.main.async {
-                self.tableView.reloadData()
+                //log.debug("Processing file: \(fileName)")
+                self.updateStatus("Processing file: \(fileName)")
             }
-        }
+        }, completion: {
+            // Sort Media
+            DispatchQueue.main.async {
+                self.directoryItems = self.directory?.contentsOrderedBy(self.sortOrder, ascending: self.sortAscending)
+                self.tableView.reloadData()
+                self.updateStatus()
+            }
+        }, failure: { (error) in
+            log.error("processNewPath() error")
+        })
     }
 
     func loadDefaults() {
@@ -145,6 +155,7 @@ class ViewController: NSViewController {
                 text = "\(itemsSelected) of \(directoryItems!.count) selected"
             }
         }
+        //log.debug("statusLabel: \(text)")
         statusLabel.stringValue = text
     }
 
@@ -252,7 +263,6 @@ class ViewController: NSViewController {
         self.progressIndicator.maxValue = Double(files.count)
         self.progressIndicator.doubleValue = Double(1)
         DispatchQueue.global(qos: .background).async {
-
             for (index, file) in files.enumerated() {
                 log.debug("\(index) \(file)")
                 DispatchQueue.main.async {

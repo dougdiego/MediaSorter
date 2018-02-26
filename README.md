@@ -59,6 +59,13 @@ Note: Original images are not modified.  A copy is made.  It's up to you to manu
 * Swift 4
 * HEIC images only work on High Sierra.  If you run on Sierra and import a HEIC image, it will crash.
 
+## Building
+Building for release:
+
+```
+$ ./buildMediaSorter.sh -0.1.1
+```
+
 ## Roadmap/Issues
 * Better progresss when importing photos.  Should display progress.
 * Drag photos or a folder to the window, instead of using the menu.

@@ -87,6 +87,12 @@ public struct Directory {
 
     public init(folderURL: URL) {
         url = folderURL
+    }
+
+    public mutating func loadFiles(currentFile: @escaping (String) -> Void,
+                                   completion: @escaping () -> Void,
+                                   failure: @escaping (_ error: Error?) -> Void ) {
+
         let requiredAttributes = [URLResourceKey.localizedNameKey,
                                   URLResourceKey.effectiveIconKey,
                                   URLResourceKey.typeIdentifierKey,
@@ -95,7 +101,7 @@ public struct Directory {
                                   URLResourceKey.fileSizeKey,
                                   URLResourceKey.isDirectoryKey,
                                   URLResourceKey.isPackageKey]
-        if let enumerator = FileManager.default.enumerator(at: folderURL,
+        if let enumerator = FileManager.default.enumerator(at: url,
                                                            includingPropertiesForKeys: requiredAttributes,
                                                            options: [.skipsHiddenFiles, .skipsPackageDescendants, .skipsSubdirectoryDescendants],
                                                            errorHandler: nil) {
@@ -108,6 +114,9 @@ public struct Directory {
                     var icon = properties[URLResourceKey.effectiveIconKey] as? NSImage  ?? NSImage()
                     if url.path.uppercased().hasSuffix("JPG") || url.path.uppercased().hasSuffix("PNG") || url.path.uppercased().hasSuffix("HEIC") {
                         icon = NSImage(contentsOf: url)!
+                    }
+                    if let name = properties[URLResourceKey.localizedNameKey] as? String {
+                        currentFile(name)
                     }
                     files.append(Metadata(fileURL: url,
                                           name: properties[URLResourceKey.localizedNameKey] as? String ?? "",
@@ -122,6 +131,9 @@ public struct Directory {
                 }
             }
         }
+
+        completion()
+
     }
 
     func contentsOrderedBy(_ orderedBy: FileOrder, ascending: Bool) -> [Metadata] {
@@ -161,8 +173,14 @@ public struct Directory {
         return sortedFiles
     }
 
-    mutating func processNewPath(_ photoIdentifer: String = DefaultValues.identifer.rawValue,
-                                 dateFormat: String? = DefaultValues.dateFormat.rawValue) {
+    public mutating func processNewPath(_ photoIdentifer: String = DefaultValues.identifer.rawValue,
+                                        dateFormat: String? = DefaultValues.dateFormat.rawValue,
+                                        currentFile: @escaping (String) -> Void,
+                                        completion: @escaping () -> Void,
+                                        failure: @escaping (_ error: Error?) -> Void ) {
+
+        //DispatchQueue.global(qos: .background).async {
+
         let fileManager = FileManager.default
 
         // TODO: don't hardcode this
@@ -171,11 +189,12 @@ public struct Directory {
         let imageDestFolder = "image"
         let errorDestFolder = "error"
 
-        for (index, file) in files.enumerated() {
+        for (index, file) in self.files.enumerated() {
             var processedFile = file
             log.debug("file: \(file) ext: \(String(describing: file.fileExtension))")
 
             log.debug("Processing \(file.name)...")
+            currentFile(file.name)
             var date: Date?
             var newPath: String?
 
@@ -194,7 +213,7 @@ public struct Directory {
                     let heicLivePhotoPath = file.url.path.replacingOccurrences(of: fileExtension, with: "HEIC")
                     log.debug("jpgLivePhotoPath: \(jpgLivePhotoPath)")
                     log.debug("heicLivePhotoPath: \(heicLivePhotoPath)")
-                    
+
                     if fileManager.fileExists(atPath: jpgLivePhotoPath) ||
                         fileManager.fileExists(atPath: heicLivePhotoPath) {
                         log.debug("JPG/HEIC Live Photo Found")
@@ -232,9 +251,13 @@ public struct Directory {
             }
 
             processedFile.newPath = newPath!
-            files[index] = processedFile
+            self.files[index] = processedFile
         }
+        log.debug("calling completion")
+        completion()
+    //}
     }
+
 }
 
 // MARK: - Sorting
