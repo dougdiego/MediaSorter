@@ -1,7 +1,7 @@
 MediaSorter
 =========
 
-This is a pet project to sort my media according to my own workflow.  This used to be a set of scripts. Then Apple introduce the HEIC format and broke my scripts.  In order to get information like the create date of the photo and video, it was easiest to use Apple's frameworks ([CoreGraphics](https://developer.apple.com/documentation/coregraphics), [AVFoundation](https://developer.apple.com/av-foundation/)).  This mean writing an app.  I'm not an experienced Mac developer, but figured this would be a good project to learn.  Be nice.
+This is a pet project to sort my media according to my own workflow.  This used to be a set of scripts. Then Apple introduce the HEIC format and broke my scripts.  In order to get information like the create date of the photo and video, it was easiest to use Apple's frameworks ([CoreGraphics](https://developer.apple.com/documentation/coregraphics), [AVFoundation](https://developer.apple.com/av-foundation/)).  This means writing an app.  I'm not an experienced Mac developer, but figured this would be a good project to learn.  Be nice.
 
 ![MediaSorter Screenshot](Docs/Screenshots/screenshot-MediaSorter.png)
 
