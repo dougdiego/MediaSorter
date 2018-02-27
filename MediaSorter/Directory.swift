@@ -9,6 +9,7 @@
 // TODO: Add Error reasoning... No date in file, unknown type, HEIC, etc...
 
 import AppKit
+import AVFoundation
 
 public struct Metadata: CustomDebugStringConvertible, Equatable {
 
@@ -112,8 +113,15 @@ public struct Directory {
                 do {
                     let properties = try  (url as NSURL).resourceValues(forKeys: requiredAttributes)
                     var icon = properties[URLResourceKey.effectiveIconKey] as? NSImage  ?? NSImage()
-                    if url.path.uppercased().hasSuffix("JPG") || url.path.uppercased().hasSuffix("PNG") || url.path.uppercased().hasSuffix("HEIC") {
+                    if url.path.uppercased().hasSuffix("JPG")
+                        || url.path.uppercased().hasSuffix("PNG")
+                        || url.path.uppercased().hasSuffix("HEIC")
+                        || url.path.uppercased().hasSuffix("CR2") {
                         icon = NSImage(contentsOf: url)!
+                    } else if url.path.uppercased().hasSuffix("MOV") {
+                        if let image = thumbnailForVideoAtURL(url: url) {
+                            icon = image
+                        }
                     }
                     if let name = properties[URLResourceKey.localizedNameKey] as? String {
                         currentFile(name)
@@ -134,6 +142,24 @@ public struct Directory {
 
         completion()
 
+    }
+
+    private func thumbnailForVideoAtURL(url: URL) -> NSImage? {
+
+        let asset = AVAsset(url: url)
+        let assetImageGenerator = AVAssetImageGenerator(asset: asset)
+
+        var time = asset.duration
+        time.value = min(time.value, 2)
+
+        do {
+            let imageRef = try assetImageGenerator.copyCGImage(at: time, actualTime: nil)
+            //return NSImage(CGImage: imageRef)
+            return NSImage(cgImage: imageRef, size: .zero)
+        } catch {
+            print("error")
+            return nil
+        }
     }
 
     func contentsOrderedBy(_ orderedBy: FileOrder, ascending: Bool) -> [Metadata] {
@@ -201,7 +227,7 @@ public struct Directory {
             // TODO: don't hardcode file extensions
             if let fileExtension = file.fileExtension {
                 switch fileExtension.uppercased() {
-                case "JPG", "PNG", "HEIC":
+                case "JPG", "PNG", "HEIC", "CR2":
                     date = MediaUtil.getPhotoExifDateTimeOriginal(file.url.path)
                     destFolderPath = imageDestFolder
                 case "MOV", "MP4", "M4V":
@@ -255,7 +281,7 @@ public struct Directory {
         }
         log.debug("calling completion")
         completion()
-    //}
+        //}
     }
 
 }
