@@ -72,7 +72,7 @@ public enum OutputDirs: String {
     case error
 }
 
-public struct Directory {
+public class Directory {
 
     fileprivate var files: [Metadata] = []
     let url: URL
@@ -90,57 +90,58 @@ public struct Directory {
         url = folderURL
     }
 
-    public mutating func loadFiles(currentFile: @escaping (String) -> Void,
-                                   completion: @escaping () -> Void,
-                                   failure: @escaping (_ error: Error?) -> Void ) {
+    public func loadFiles(currentFile: @escaping (String) -> Void,
+                          completion: @escaping () -> Void,
+                          failure: @escaping (_ error: Error?) -> Void ) {
+        DispatchQueue.global(qos: .userInitiated).async {
+            let requiredAttributes = [URLResourceKey.localizedNameKey,
+                                      URLResourceKey.effectiveIconKey,
+                                      URLResourceKey.typeIdentifierKey,
+                                      URLResourceKey.contentModificationDateKey,
+                                      URLResourceKey.creationDateKey,
+                                      URLResourceKey.fileSizeKey,
+                                      URLResourceKey.isDirectoryKey,
+                                      URLResourceKey.isPackageKey]
+            if let enumerator = FileManager.default.enumerator(at: self.url,
+                                                               includingPropertiesForKeys: requiredAttributes,
+                                                               options: [.skipsHiddenFiles, .skipsPackageDescendants, .skipsSubdirectoryDescendants],
+                                                               errorHandler: nil) {
 
-        let requiredAttributes = [URLResourceKey.localizedNameKey,
-                                  URLResourceKey.effectiveIconKey,
-                                  URLResourceKey.typeIdentifierKey,
-                                  URLResourceKey.contentModificationDateKey,
-                                  URLResourceKey.creationDateKey,
-                                  URLResourceKey.fileSizeKey,
-                                  URLResourceKey.isDirectoryKey,
-                                  URLResourceKey.isPackageKey]
-        if let enumerator = FileManager.default.enumerator(at: url,
-                                                           includingPropertiesForKeys: requiredAttributes,
-                                                           options: [.skipsHiddenFiles, .skipsPackageDescendants, .skipsSubdirectoryDescendants],
-                                                           errorHandler: nil) {
+                while let url = enumerator.nextObject() as? URL {
+                    log.debug( "\(url )")
 
-            while let url = enumerator.nextObject() as? URL {
-                log.debug( "\(url )")
-
-                do {
-                    let properties = try  (url as NSURL).resourceValues(forKeys: requiredAttributes)
-                    var icon = properties[URLResourceKey.effectiveIconKey] as? NSImage  ?? NSImage()
-                    if url.path.uppercased().hasSuffix("JPG")
-                        || url.path.uppercased().hasSuffix("PNG")
-                        || url.path.uppercased().hasSuffix("HEIC")
-                        || url.path.uppercased().hasSuffix("CR2") {
-                        icon = NSImage(contentsOf: url)!
-                    } else if url.path.uppercased().hasSuffix("MOV") {
-                        if let image = thumbnailForVideoAtURL(url: url) {
-                            icon = image
+                    do {
+                        let properties = try  (url as NSURL).resourceValues(forKeys: requiredAttributes)
+                        var icon = properties[URLResourceKey.effectiveIconKey] as? NSImage  ?? NSImage()
+                        if url.path.uppercased().hasSuffix("JPG")
+                            || url.path.uppercased().hasSuffix("PNG")
+                            || url.path.uppercased().hasSuffix("HEIC")
+                            || url.path.uppercased().hasSuffix("CR2") {
+                            icon = NSImage(contentsOf: url)!
+                        } else if url.path.uppercased().hasSuffix("MOV") {
+                            if let image = self.thumbnailForVideoAtURL(url: url) {
+                                icon = image
+                            }
                         }
+                        if let name = properties[URLResourceKey.localizedNameKey] as? String {
+                            currentFile(name)
+                        }
+                        self.files.append(Metadata(fileURL: url,
+                                                   name: properties[URLResourceKey.localizedNameKey] as? String ?? "",
+                                                   createDate: properties[URLResourceKey.creationDateKey] as? Date ?? Date.distantPast,
+                                                   modifiedDate: properties[URLResourceKey.contentModificationDateKey] as? Date ?? Date.distantPast,
+                                                   size: (properties[URLResourceKey.fileSizeKey] as? NSNumber)?.int64Value ?? 0,
+                                                   icon: icon,
+                                                   isFolder: (properties[URLResourceKey.isDirectoryKey] as? NSNumber)?.boolValue ?? false,
+                                                   color: NSColor()))
+                    } catch {
+                        log.debug("Error reading file attributes")
                     }
-                    if let name = properties[URLResourceKey.localizedNameKey] as? String {
-                        currentFile(name)
-                    }
-                    files.append(Metadata(fileURL: url,
-                                          name: properties[URLResourceKey.localizedNameKey] as? String ?? "",
-                                          createDate: properties[URLResourceKey.creationDateKey] as? Date ?? Date.distantPast,
-                                          modifiedDate: properties[URLResourceKey.contentModificationDateKey] as? Date ?? Date.distantPast,
-                                          size: (properties[URLResourceKey.fileSizeKey] as? NSNumber)?.int64Value ?? 0,
-                                          icon: icon,
-                                          isFolder: (properties[URLResourceKey.isDirectoryKey] as? NSNumber)?.boolValue ?? false,
-                                          color: NSColor()))
-                } catch {
-                    log.debug("Error reading file attributes")
                 }
             }
-        }
 
-        completion()
+            completion()
+        }
 
     }
 
@@ -199,89 +200,90 @@ public struct Directory {
         return sortedFiles
     }
 
-    public mutating func processNewPath(_ photoIdentifer: String = DefaultValues.identifer.rawValue,
-                                        dateFormat: String? = DefaultValues.dateFormat.rawValue,
-                                        currentFile: @escaping (String) -> Void,
-                                        completion: @escaping () -> Void,
-                                        failure: @escaping (_ error: Error?) -> Void ) {
+    public func processNewPath(_ photoIdentifer: String = DefaultValues.identifer.rawValue,
+                               dateFormat: String? = DefaultValues.dateFormat.rawValue,
+                               currentFile: @escaping (String) -> Void,
+                               completion: @escaping () -> Void,
+                               failure: @escaping (_ error: Error?) -> Void ) {
 
-        //DispatchQueue.global(qos: .background).async {
+        DispatchQueue.global(qos: .userInitiated).async {
 
-        let fileManager = FileManager.default
+            let fileManager = FileManager.default
 
-        // TODO: don't hardcode this
-        var destFolderPath = ""
-        let videoDestFolder = "video"
-        let imageDestFolder = "image"
-        let errorDestFolder = "error"
+            // TODO: don't hardcode this
+            var destFolderPath = ""
+            let videoDestFolder = "video"
+            let imageDestFolder = "image"
+            let errorDestFolder = "error"
 
-        for (index, file) in self.files.enumerated() {
-            var processedFile = file
-            log.debug("file: \(file) ext: \(String(describing: file.fileExtension))")
+            for (index, file) in self.files.enumerated() {
+                var processedFile = file
+                log.debug("file: \(file) ext: \(String(describing: file.fileExtension))")
 
-            log.debug("Processing \(file.name)...")
-            currentFile(file.name)
-            var date: Date?
-            var newPath: String?
+                log.debug("Processing name: \(file.name) path: \(file.url)")
+                currentFile(file.name)
+                //sleep(1)
+                var date: Date?
+                var newPath: String?
 
-            // TODO: don't hardcode file extensions
-            if let fileExtension = file.fileExtension {
-                switch fileExtension.uppercased() {
-                case "JPG", "PNG", "HEIC", "CR2":
-                    date = MediaUtil.getPhotoExifDateTimeOriginal(file.url.path)
-                    destFolderPath = imageDestFolder
-                case "MOV", "MP4", "M4V":
-                    date = MediaUtil.getVideoCreationDate(URL(fileURLWithPath: file.url.path))
-                    destFolderPath = videoDestFolder
-
-                    // Live Photo should go in image directory
-                    let jpgLivePhotoPath = file.url.path.replacingOccurrences(of: fileExtension, with: "JPG")
-                    let heicLivePhotoPath = file.url.path.replacingOccurrences(of: fileExtension, with: "HEIC")
-                    log.debug("jpgLivePhotoPath: \(jpgLivePhotoPath)")
-                    log.debug("heicLivePhotoPath: \(heicLivePhotoPath)")
-
-                    if fileManager.fileExists(atPath: jpgLivePhotoPath) ||
-                        fileManager.fileExists(atPath: heicLivePhotoPath) {
-                        log.debug("JPG/HEIC Live Photo Found")
+                // TODO: don't hardcode file extensions
+                if let fileExtension = file.fileExtension {
+                    switch fileExtension.uppercased() {
+                    case "JPG", "PNG", "HEIC", "CR2":
+                        date = MediaUtil.getPhotoExifDateTimeOriginal(file.url.path)
                         destFolderPath = imageDestFolder
+                    case "MOV", "MP4", "M4V":
+                        date = MediaUtil.getVideoCreationDate(URL(fileURLWithPath: file.url.path))
+                        destFolderPath = videoDestFolder
+
+                        // Live Photo should go in image directory
+                        let jpgLivePhotoPath = file.url.path.replacingOccurrences(of: fileExtension, with: "JPG")
+                        let heicLivePhotoPath = file.url.path.replacingOccurrences(of: fileExtension, with: "HEIC")
+                        log.debug("jpgLivePhotoPath: \(jpgLivePhotoPath)")
+                        log.debug("heicLivePhotoPath: \(heicLivePhotoPath)")
+
+                        if fileManager.fileExists(atPath: jpgLivePhotoPath) ||
+                            fileManager.fileExists(atPath: heicLivePhotoPath) {
+                            log.debug("JPG/HEIC Live Photo Found")
+                            destFolderPath = imageDestFolder
+                        }
+
+                    default:
+                        log.debug("No valid extension found for: \(fileExtension.uppercased())")
+                    }
+                }
+                log.debug("destFolderPath: \(destFolderPath)")
+                log.debug("date: \(String(describing: date))")
+
+                if let date = date {
+                    processedFile.exifDateTimeOriginal = date
+                    let dateFormatter = DateFormatter()
+                    dateFormatter.dateFormat = dateFormat
+                    let fDate = dateFormatter.string(from: date)
+                    let filename: String?
+
+                    if photoIdentifer.isEmpty {
+                        filename  = "\(fDate)-\(file.name)"
+                    } else {
+                        filename  = "\(fDate)-\(photoIdentifer)-\(file.name)"
                     }
 
-                default:
-                    log.debug("No valid extension found for: \(fileExtension.uppercased())")
-                }
-            }
-            log.debug("destFolderPath: \(destFolderPath)")
-            log.debug("date: \(String(describing: date))")
-
-            if let date = date {
-                processedFile.exifDateTimeOriginal = date
-                let dateFormatter = DateFormatter()
-                dateFormatter.dateFormat = dateFormat
-                let fDate = dateFormatter.string(from: date)
-                let filename: String?
-
-                if photoIdentifer.isEmpty {
-                    filename  = "\(fDate)-\(file.name)"
-                } else {
-                    filename  = "\(fDate)-\(photoIdentifer)-\(file.name)"
+                    log.debug("filename: \(String(describing: filename))")
+                    if let filename = filename {
+                        newPath = "\(destFolderPath)/\(filename)"
+                    }
                 }
 
-                log.debug("filename: \(String(describing: filename))")
-                if let filename = filename {
-                    newPath = "\(destFolderPath)/\(filename)"
+                if newPath == nil {
+                    newPath = "\(errorDestFolder)/\(file.name)"
                 }
-            }
 
-            if newPath == nil {
-                newPath = "\(errorDestFolder)/\(file.name)"
+                processedFile.newPath = newPath!
+                self.files[index] = processedFile
             }
-
-            processedFile.newPath = newPath!
-            self.files[index] = processedFile
+            log.debug("calling completion")
+            completion()
         }
-        log.debug("calling completion")
-        completion()
-        //}
     }
 
 }

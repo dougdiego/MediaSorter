@@ -337,7 +337,7 @@ extension ViewController: NSTableViewDelegate {
     }
 
     func tableView(_ tableView: NSTableView, viewFor tableColumn: NSTableColumn?, row: Int) -> NSView? {
-
+        //log.debug("tableView viewFor tableColumn: \(String(describing: tableColumn?.title)) row: \(row)")
         var image: NSImage?
         var text: String = ""
         var cellIdentifier: String = ""
