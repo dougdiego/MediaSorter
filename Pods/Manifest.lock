@@ -3,20 +3,26 @@ PODS:
     - ObjcExceptionBridging/ObjcExceptionBridging (= 1.0.1)
   - ObjcExceptionBridging/ObjcExceptionBridging (1.0.1)
   - SwiftLint (0.24.0)
-  - XCGLogger (6.0.2):
-    - XCGLogger/Core (= 6.0.2)
-  - XCGLogger/Core (6.0.2):
+  - XCGLogger (6.1.0):
+    - XCGLogger/Core (= 6.1.0)
+  - XCGLogger/Core (6.1.0):
     - ObjcExceptionBridging
 
 DEPENDENCIES:
   - SwiftLint
-  - XCGLogger (~> 6.0.1)
+  - XCGLogger
+
+SPEC REPOS:
+  https://github.com/CocoaPods/Specs.git:
+    - ObjcExceptionBridging
+    - SwiftLint
+    - XCGLogger
 
 SPEC CHECKSUMS:
   ObjcExceptionBridging: c30e00eb3700467e695faeea30e26e18bd445001
   SwiftLint: a014c92b4664e8b13f380f8640a51bb1733778ba
-  XCGLogger: c9601cae9a8912de34a58666ba931ed3d624dd31
+  XCGLogger: 7f7f43f15dfe3a305fa1342b7dc29af656289abd
 
-PODFILE CHECKSUM: d8fb45ee00034b28ac6b292259e9c70eedb7c3d4
+PODFILE CHECKSUM: a18c4004ef2bdce40a95f16e3e80af01c043484c
 
-COCOAPODS: 1.3.1
+COCOAPODS: 1.8.4

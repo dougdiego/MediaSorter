@@ -108,7 +108,6 @@
 				94E98A4E1BA381AA00FEC16F /* Frameworks */,
 				94E98A4F1BA381AA00FEC16F /* Resources */,
 				A0632C79E693C192C1A1632F /* [CP] Embed Pods Frameworks */,
-				167C313191DCC2C970FEC26C /* [CP] Copy Pods Resources */,
 				3DAA27C81FB7B5FA0009EFCE /* ShellScript */,
 			);
 			buildRules = (
@@ -131,7 +130,9 @@
 				TargetAttributes = {
 					94E98A501BA381AA00FEC16F = {
 						CreatedOnToolsVersion = 7.0;
+						DevelopmentTeam = V6HBKZC833;
 						LastSwiftMigration = 0910;
+						ProvisioningStyle = Automatic;
 					};
 				};
 			};
@@ -166,21 +167,6 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		167C313191DCC2C970FEC26C /* [CP] Copy Pods Resources */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-			);
-			name = "[CP] Copy Pods Resources";
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-MediaSorter/Pods-MediaSorter-resources.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
 		3DAA27C81FB7B5FA0009EFCE /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -218,7 +204,7 @@
 			files = (
 			);
 			inputPaths = (
-				"${SRCROOT}/Pods/Target Support Files/Pods-MediaSorter/Pods-MediaSorter-frameworks.sh",
+				"${PODS_ROOT}/Target Support Files/Pods-MediaSorter/Pods-MediaSorter-frameworks.sh",
 				"${BUILT_PRODUCTS_DIR}/ObjcExceptionBridging/ObjcExceptionBridging.framework",
 				"${BUILT_PRODUCTS_DIR}/XCGLogger/XCGLogger.framework",
 			);
@@ -229,7 +215,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-MediaSorter/Pods-MediaSorter-frameworks.sh\"\n";
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-MediaSorter/Pods-MediaSorter-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */
@@ -365,11 +351,15 @@
 			baseConfigurationReference = B9578666171D031330B8E488 /* Pods-MediaSorter.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "Mac Developer";
+				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = V6HBKZC833;
 				INFOPLIST_FILE = MediaSorter/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = org.diego.mac.MediaSorter;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_SWIFT3_OBJC_INFERENCE = On;
 				SWIFT_VERSION = 4.0;
 			};
@@ -380,11 +370,15 @@
 			baseConfigurationReference = B5C96FA35793E4CC39647DF5 /* Pods-MediaSorter.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "Mac Developer";
+				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = V6HBKZC833;
 				INFOPLIST_FILE = MediaSorter/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = org.diego.mac.MediaSorter;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_SWIFT3_OBJC_INFERENCE = On;
 				SWIFT_VERSION = 4.0;
 			};
