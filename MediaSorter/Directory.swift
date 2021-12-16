@@ -114,6 +114,7 @@ public class Directory {
                         let properties = try  (url as NSURL).resourceValues(forKeys: requiredAttributes)
                         var icon = properties[URLResourceKey.effectiveIconKey] as? NSImage  ?? NSImage()
                         if url.path.uppercased().hasSuffix("JPG")
+                            || url.path.uppercased().hasSuffix("JPEG")
                             || url.path.uppercased().hasSuffix("PNG")
                             || url.path.uppercased().hasSuffix("HEIC")
                             || url.path.uppercased().hasSuffix("CR2") {
@@ -238,8 +239,8 @@ public class Directory {
                         
                         // Live Photo should go in image directory
                         let jpgLivePhotoPath = file.url.path.replacingOccurrences(of: fileExtension, with: "JPG")
-                        let heicLivePhotoPath = file.url.path.replacingOccurrences(of: fileExtension, with: "HEIC")
                         let jpegLivePhotoPath = file.url.path.replacingOccurrences(of: fileExtension, with: "JPEG")
+                        let heicLivePhotoPath = file.url.path.replacingOccurrences(of: fileExtension, with: "HEIC")
                         let tifLivePhotoPath = file.url.path.replacingOccurrences(of: fileExtension, with: "TIF")
 //                        log.debug("jpgLivePhotoPath: \(jpgLivePhotoPath)")
 //                        log.debug("heicLivePhotoPath: \(heicLivePhotoPath)")
